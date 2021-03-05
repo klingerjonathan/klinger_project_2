@@ -23,6 +23,9 @@ add_global_arguments('-I' + get_option('spdlog_include_dir'), language : 'cpp')
 
 # add additional include global arguments appropriately!
 
+# httplib
+#add_global_arguments('-I' + get_option('httplib_include_dir'), language : 'cpp')
+
 # # begin protobuf: https://developers.google.com/protocol-buffers/
 # # protobuf: must be installed independently and has to be found...
 # protoc = find_program('protoc', required : true)
