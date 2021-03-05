@@ -1,0 +1,54 @@
+Build started at 2021-03-05T14:46:41.747427
+Main binary: /usr/bin/python
+Build Options: -Dbackend=ninja
+Python system: Linux
+The Meson build system
+Version: 0.56.0
+Source dir: /home/jonny/git/project_2/klinger_project_2
+Build dir: /home/jonny/git/project_2/klinger_project_2/build
+Build type: native build
+Project name: klinger_project_2
+Project version: 0.1
+C++ compiler for the host machine: c++ (gcc 10.2.0 "c++ (GCC) 10.2.0")
+C++ linker for the host machine: c++ ld.bfd 2.35.1
+None of 'AR' are defined in the environment, not changing global flags.
+C++ compiler for the build machine: c++ (gcc 10.2.0 "c++ (GCC) 10.2.0")
+C++ linker for the build machine: c++ ld.bfd 2.35.1
+None of 'AR' are defined in the environment, not changing global flags.
+Build machine cpu family: x86_64
+Build machine cpu: x86_64
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Target machine cpu family: x86_64
+Target machine cpu: x86_64
+Dependency threads found: YES unknown (cached)
+Dependency protobuf found: YES 3.12.4 (cached)
+Build targets in project: 1
+
+Found ninja-1.10.2 at /usr/bin/ninja
+Running compile:
+Working directory:  /tmp/tmpvocgejkj
+Command line:  c++ /tmp/tmpvocgejkj/testfile.cpp -o /tmp/tmpvocgejkj/output.obj -pipe -D_FILE_OFFSET_BITS=64 -c -std=c++17 
+
+Code:
+ int i = static_cast<int>(0);
+Compiler stdout:
+ 
+Compiler stderr:
+ 
+Compiler accepts -std=c++17: YES
+Running compile:
+Working directory:  /home/jonny/git/project_2/klinger_project_2/build/meson-private/tmpx98yevau
+Command line:  c++ /home/jonny/git/project_2/klinger_project_2/build/meson-private/tmpx98yevau/testfile.cpp -o /home/jonny/git/project_2/klinger_project_2/build/meson-private/tmpx98yevau/output.obj -pipe -c -D_FILE_OFFSET_BITS=64 -O0 -fpermissive --print-search-dirs 
+
+Code:
+ 
+Compiler stdout:
+ install: /usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/
+programs: =/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../x86_64-pc-linux-gnu/bin/x86_64-pc-linux-gnu/10.2.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../x86_64-pc-linux-gnu/bin/
+libraries: =/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../x86_64-pc-linux-gnu/lib/x86_64-pc-linux-gnu/10.2.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../x86_64-pc-linux-gnu/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../x86_64-pc-linux-gnu/10.2.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../lib/:/lib/x86_64-pc-linux-gnu/10.2.0/:/lib/../lib/:/usr/lib/x86_64-pc-linux-gnu/10.2.0/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.2.0/../../../:/lib/:/usr/lib/
+
+Compiler stderr:
+ 
+None of 'STRIP' are defined in the environment, not changing global flags.
+None of 'STRIP' are defined in the environment, not changing global flags.
