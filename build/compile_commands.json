@@ -1,8 +1,0 @@
-[
-  {
-    "directory": "/home/jonny/git/project_2/klinger_project_2/build",
-    "command": "c++ -Iklinger_project_2.p -I. -I.. -I../include -I -I -I -fdiagnostics-color=always -pipe -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wnon-virtual-dtor -Wextra -Wpedantic -Werror -std=c++17 -g -DASIO_STANDALONE -DASIO_NO_DEPRECATED -pthread -MD -MQ klinger_project_2.p/src_main.cpp.o -MF klinger_project_2.p/src_main.cpp.o.d -o klinger_project_2.p/src_main.cpp.o -c ../src/main.cpp",
-    "file": "../src/main.cpp",
-    "output": "klinger_project_2.p/src_main.cpp.o"
-  }
-]
