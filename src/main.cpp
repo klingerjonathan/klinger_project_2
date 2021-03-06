@@ -29,5 +29,10 @@ int main() {
       std::cout << "Oh nein! " << res.error() << std::endl;
     }
 
+    //Teste Delete
+    auto res2 = cli.Delete("/firmen/1");
+
+    
+
     return 0;
 }
