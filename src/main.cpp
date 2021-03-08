@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <thread>
+#include <fstream>
 
 
 //#define CPPHTTPLIB_OPENSSL_SUPPORT
@@ -16,21 +17,19 @@ using namespace std;
 
 //int main(int argc, char* argv[]) {
 int main() {
-    httplib::Client cli("http://ziwax.de:3002");
+    httplib::Client cli("http://www.d474base.eu");
 
+    string body;
+    ofstream file("test.txt");
 
-    //Teste GET mit Ziwax API
-    if (auto res = cli.Get("/firmen")) {
-        if (res->status == 200) {
-            std::cout << res->body << std::endl;
-        }   
-    } else {
-      //auto err = res.error();
-      std::cout << "Oh nein! " << res.error() << std::endl;
-    }
-
-    //Teste Delete
-    auto res2 = cli.Delete("/firmen/1");
+    auto res = cli.Get("/", 
+      [&](const char *data, size_t data_length) {
+          body.append(data, data_length);
+          file << body;
+          return true;
+      });
+    
+    file.close();
 
     
 
