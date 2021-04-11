@@ -8,6 +8,7 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
+#include "spdlog/spdlog.h"
 
 
 //#define CPPHTTPLIB_OPENSSL_SUPPORT
@@ -19,6 +20,7 @@ using namespace std;
 
 
 int main(int argc, char** argv) {
+  spdlog::info("Einfacher HTTP 1.1 Client gestartet!");
   //Interface
   CLI::App app{"Simple HTTP1.1 Client"};
 
@@ -34,6 +36,7 @@ int main(int argc, char** argv) {
   app.add_option("-3", req3, "Third Request");
 
   CLI11_PARSE(app, argc, argv);
+  spdlog::info("Userinput erfolgreich aufgenommen!");
 
   //Conversion von req1 
   //URL
@@ -46,6 +49,7 @@ int main(int argc, char** argv) {
   //req1
   httplib::Client cli(url1);
   if (req1[0] == "GET" || req1[0] == "get") { 
+    spdlog::info("1. Request: GET erkannt");
     if (req1.size() > 4) {
       //Konvertiere Username bei Basic auth
       const char *user1 = req1[4].c_str();
@@ -57,21 +61,24 @@ int main(int argc, char** argv) {
 
     if (auto res = cli.Get(sub1)) {
       if (res->status == 200) {
-        cout << res->status << endl;
+        spdlog::info("1. Request: status: {}", res->status);
 
         //Writing in file. . .
         ofstream file;
         file.open(req1[3]);
         file << res->body;
         file.close();
+        spdlog::info("1. Request: GET response erfolgreich in Datei geschrieben");
       } else {
-        cout << res->status << endl;
-        cout << res->body << endl;
+        spdlog::warn("1. Request: Fehlercode erkannt!");
+        spdlog::warn("1. Request: Code: {}", res->status);
+        spdlog::warn("1. Request: Message: {}", res->body);
       }
     } else {
-        cout << res->body << endl;
+        cout << res.error() << endl;
     }
   } else if (req1[0] == "POST" || req1[0] == "post") {
+      spdlog::info("1. Request: POST erkannt");
       //Convertiere parameter von string auf char *
       const char *params1 = req1[3].c_str();
       //Convertiere Datentyp von string auf char *
@@ -88,12 +95,14 @@ int main(int argc, char** argv) {
       }
       
       if (auto res = cli.Post(sub1, params1, dat_type1)) {
-        cout << res->status << endl;
-        cout << res->body << endl;
+        spdlog::warn("1. Request: Status: {}", res->status);
+        spdlog::warn("1. Request: Message: {}", res->body);
       } else {
-        cout << res.error() << endl;
+        spdlog::critical("1. Request: POST nicht erfolgreich");
+        spdlog::warn("1. Request: Error: {}", res.error());
       }
   } else if (req1[0] == "PUT" || req1[0] == "put") {
+      spdlog::info("1. Request: PUT erkannt");
       //Convertiere parameter von string auf char *
       const char *params1 = req1[3].c_str();
       //Convertiere Datentyp von string auf char *
@@ -110,12 +119,14 @@ int main(int argc, char** argv) {
       }
 
       if (auto res = cli.Put(sub1, params1, dat_type1)) {
-        cout << res->status << endl;
-        cout << res->body << endl;
+        spdlog::warn("1. Request: Status: {}", res->status);
+        spdlog::warn("1. Request: Message: {}", res->body);
       } else {
-        cout << res.error() << endl;
+        spdlog::critical("1. Request: PUT nicht erfolgreich");
+        spdlog::warn("1. Request: Error: {}", res.error());
       }
   } else if (req1[0] == "DELETE" || req1[0] == "delete") {
+      spdlog::info("1. Request: DELETE erkannt");
       if (req1.size() > 3) {
         //Konvertiere Username bei Basic auth
         const char *user1 = req1[3].c_str();
@@ -127,9 +138,11 @@ int main(int argc, char** argv) {
       }
 
       if (auto res = cli.Delete(sub1)) {
-        std::cout << res->body << std::endl;
+        spdlog::warn("1. Request: Status: {}", res->status);
+        spdlog::warn("1. Request: Message: {}", res->body);
       } else {
-        std::cout << res.error() << std::endl;
+        spdlog::critical("1. Request: DELETE nicht erfolgreich");
+        spdlog::warn("1. Request: Error: {}", res.error());
       }
   }
 
