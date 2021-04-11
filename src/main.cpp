@@ -87,13 +87,42 @@ int main(int argc, char** argv) {
         cout << "Falsche Eingabe!" << endl;
         return 1;
       }
-  } /*else if (req1.at(0) == "PUT" || req1.at(0) == "put") {
+  } else if (req1[0] == "PUT" || req1[0] == "put") {
+      if (req1.size() == 5) {
+        //Convertiere parameter von string auf char *
+        char *params1;
+        string params1_obj(req1[3]);
+        params1 = &params1_obj[0];
+        cout << params1 << endl;
+        //Convertiere Datentyp von string auf char *
+        char *dat_type1;
+        string dat_type1_obj(req1[4]);
+        dat_type1 = &dat_type1_obj[0];
+        cout << dat_type1 << endl;
 
-  } else if (req1.at(0) == "DELETE" || req1.at(0) == "delete") {
-
+        if (auto res = cli.Put(sub1, params1, dat_type1)) {
+          if (res->status == 200) {
+            std::cout << res->body << std::endl;
+          } else {
+            std::cout << res->status << std::endl;
+            std::cout << res->body << std::endl;
+          }
+        } else {
+            std::cout << res.error() << std::endl;
+       }
+      } else {
+        cout << "Falsche Eingabe!" << endl;
+        return 1;
+      }
+  } else if (req1[0] == "DELETE" || req1[0] == "delete") {
+      if (auto res = cli.Delete(sub1)) {
+        std::cout << res->body << std::endl;
+      } else {
+        std::cout << res.error() << std::endl;
+      }
   }
 
-*/
+
   string body;
   ofstream file("test.txt");
 
