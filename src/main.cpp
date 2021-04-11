@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
   CLI11_PARSE(app, argc, argv);
 
-  //Conversion of Request 1 
+  //Conversion von Request 1 
   //TYPE
   char *type1;
   string type1_obj(req1[0]);
@@ -49,20 +49,45 @@ int main(int argc, char** argv) {
   string sub1_obj(req1[2]);
   sub1 = &sub1_obj[0];
 
-  //Interpretation of input
+  cout << type1 << endl;
+  cout << url1 << endl;
+  cout << sub1 << endl;
+  //Interpretation des inputs
   //req1
-  if (strcmp(type1, "GET") || strcmp(type1, "get")) { 
-    httplib::Client cli(url1);
+  httplib::Client cli(url1);
+  if (req1[0] == "GET" || req1[0] == "get") { 
     if (auto res = cli.Get(sub1)) {
       if (res->status == 200) {
         std::cout << res->body << std::endl;
       }
     } else {
-      std::cout << res.error() << std::endl;
+        std::cout << res.error() << std::endl;
     }
-  } /*else if (req1.at(0) == "POST" || req1.at(0) == "post") {
+  } else if (req1[0] == "POST" || req1[0] == "post") {
+      if (req1.size() == 5) {
+        //Convertiere parameter von string auf char *
+        char *params1;
+        string params1_obj(req1[3]);
+        params1 = &params1_obj[0];
+        cout << params1 << endl;
+        //Convertiere Datentyp von string auf char *
+        char *dat_type1;
+        string dat_type1_obj(req1[4]);
+        dat_type1 = &dat_type1_obj[0];
+        cout << dat_type1 << endl;
 
-  } else if (req1.at(0) == "PUT" || req1.at(0) == "put") {
+        if (auto res = cli.Post(sub1, params1, dat_type1)) {
+          if (res->status == 200) {
+            std::cout << res->body << std::endl;
+          }
+        } else {
+            std::cout << res.error() << std::endl;
+       }
+      } else {
+        cout << "Falsche Eingabe!" << endl;
+        return 1;
+      }
+  } /*else if (req1.at(0) == "PUT" || req1.at(0) == "put") {
 
   } else if (req1.at(0) == "DELETE" || req1.at(0) == "delete") {
 
