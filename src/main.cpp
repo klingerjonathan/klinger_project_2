@@ -56,65 +56,117 @@ int main(int argc, char** argv) {
   //req1
   httplib::Client cli(url1);
   if (req1[0] == "GET" || req1[0] == "get") { 
+    if (req1.size() > 4) {
+      //Konvertiere Username bei Basic auth
+      char *user1;
+      string user1_obj(req1[4]);
+      user1 = &user1_obj[0];
+
+      //Konvertiere Passwort bei Basic auth
+      char *pw1;
+      string pw1_obj(req1[5]);
+      pw1 = &pw1_obj[0];
+
+      cli.set_basic_auth(user1, pw1);
+    }
+
     if (auto res = cli.Get(sub1)) {
       if (res->status == 200) {
-        std::cout << res->body << std::endl;
+        cout << res->status << endl;
+        ofstream file(req1[3]);
+        file << res->body;
+        file.close();
+      } else {
+        cout << res->status << endl;
+        cout << res->body << endl;
       }
     } else {
         std::cout << res.error() << std::endl;
     }
   } else if (req1[0] == "POST" || req1[0] == "post") {
-      if (req1.size() == 5) {
-        //Convertiere parameter von string auf char *
-        char *params1;
-        string params1_obj(req1[3]);
-        params1 = &params1_obj[0];
-        cout << params1 << endl;
-        //Convertiere Datentyp von string auf char *
-        char *dat_type1;
-        string dat_type1_obj(req1[4]);
-        dat_type1 = &dat_type1_obj[0];
-        cout << dat_type1 << endl;
+      //Convertiere parameter von string auf char *
+      char *params1;
+      string params1_obj(req1[3]);
+      params1 = &params1_obj[0];
+      cout << params1 << endl;
+      //Convertiere Datentyp von string auf char *
+      char *dat_type1;
+      string dat_type1_obj(req1[4]);
+      dat_type1 = &dat_type1_obj[0];
+      cout << dat_type1 << endl;
 
-        if (auto res = cli.Post(sub1, params1, dat_type1)) {
-          if (res->status == 200) {
-            std::cout << res->body << std::endl;
-          }
-        } else {
-            std::cout << res.error() << std::endl;
-       }
+      if (req1.size() > 5) {
+        //Konvertiere Username bei Basic auth
+        char *user1;
+        string user1_obj(req1[5]);
+        user1 = &user1_obj[0];
+
+        //Konvertiere Passwort bei Basic auth
+        char *pw1;
+        string pw1_obj(req1[6]);
+        pw1 = &pw1_obj[0];
+
+        cli.set_basic_auth(user1, pw1);
+      }
+      
+      if (auto res = cli.Post(sub1, params1, dat_type1)) {
+        if (res->status == 200) {
+          std::cout << res->body << std::endl;
+        }
       } else {
-        cout << "Falsche Eingabe!" << endl;
-        return 1;
+          std::cout << res.error() << std::endl;
       }
   } else if (req1[0] == "PUT" || req1[0] == "put") {
-      if (req1.size() == 5) {
-        //Convertiere parameter von string auf char *
-        char *params1;
-        string params1_obj(req1[3]);
-        params1 = &params1_obj[0];
-        cout << params1 << endl;
-        //Convertiere Datentyp von string auf char *
-        char *dat_type1;
-        string dat_type1_obj(req1[4]);
-        dat_type1 = &dat_type1_obj[0];
-        cout << dat_type1 << endl;
+      //Convertiere parameter von string auf char *
+      char *params1;
+      string params1_obj(req1[3]);
+      params1 = &params1_obj[0];
+      cout << params1 << endl;
+      //Convertiere Datentyp von string auf char *
+      char *dat_type1;
+      string dat_type1_obj(req1[4]);
+      dat_type1 = &dat_type1_obj[0];
+      cout << dat_type1 << endl;
 
-        if (auto res = cli.Put(sub1, params1, dat_type1)) {
-          if (res->status == 200) {
-            std::cout << res->body << std::endl;
-          } else {
-            std::cout << res->status << std::endl;
-            std::cout << res->body << std::endl;
-          }
+      if (req1.size() > 5) {
+        //Konvertiere Username bei Basic auth
+        char *user1;
+        string user1_obj(req1[5]);
+        user1 = &user1_obj[0];
+  
+        //Konvertiere Passwort bei Basic auth
+        char *pw1;
+        string pw1_obj(req1[6]);
+        pw1 = &pw1_obj[0];
+  
+        cli.set_basic_auth(user1, pw1);
+      }
+
+      if (auto res = cli.Put(sub1, params1, dat_type1)) {
+        if (res->status == 200) {
+          std::cout << res->body << std::endl;
         } else {
-            std::cout << res.error() << std::endl;
-       }
+          std::cout << res->status << std::endl;
+          std::cout << res->body << std::endl;
+        }
       } else {
-        cout << "Falsche Eingabe!" << endl;
-        return 1;
+          std::cout << res.error() << std::endl;
       }
   } else if (req1[0] == "DELETE" || req1[0] == "delete") {
+      if (req1.size() > 5) {
+        //Konvertiere Username bei Basic auth
+        char *user1;
+        string user1_obj(req1[5]);
+        user1 = &user1_obj[0];
+  
+        //Konvertiere Passwort bei Basic auth
+        char *pw1;
+        string pw1_obj(req1[6]);
+        pw1 = &pw1_obj[0];
+  
+        cli.set_basic_auth(user1, pw1);
+      }
+
       if (auto res = cli.Delete(sub1)) {
         std::cout << res->body << std::endl;
       } else {
@@ -123,12 +175,11 @@ int main(int argc, char** argv) {
   }
 
 
-  string body;
-  ofstream file("test.txt");
+
 
     
 
-  file.close();
+  
 
     
 
