@@ -17,14 +17,7 @@
 
 using namespace std;
 
-char* convert(string str) {
-  char *c_str;
-  string obj(str);
-  c_str = &obj[0];
-  return c_str;
-}
 
-//int main(int argc, char* argv[]) {
 int main(int argc, char** argv) {
   //Interface
   CLI::App app{"Simple HTTP1.1 Client"};
@@ -42,26 +35,22 @@ int main(int argc, char** argv) {
 
   CLI11_PARSE(app, argc, argv);
 
-  //Conversion von Request 1 
-  //TYPE
-  char *type1 = convert(req1[0]);
+  //Conversion von req1 
   //URL
-  char *url1 = convert(req1[1]);
+  const char *url1 = req1[1].c_str();
   //"/"
-  char *sub1 = convert(req1[2]);
+  const char *sub1 = req1[2].c_str();
 
-  cout << type1 << endl;
-  cout << url1 << endl;
-  cout << sub1 << endl;
+
   //Interpretation des inputs
   //req1
   httplib::Client cli(url1);
   if (req1[0] == "GET" || req1[0] == "get") { 
     if (req1.size() > 4) {
       //Konvertiere Username bei Basic auth
-      char *user1 = convert(req1[4]);
+      const char *user1 = req1[4].c_str();
       //Konvertiere Passwort bei Basic auth
-      char *pw1 = convert(req1[5]);
+      const char *pw1 = req1[5].c_str();
 
       cli.set_basic_auth(user1, pw1);
     }
@@ -71,7 +60,8 @@ int main(int argc, char** argv) {
         cout << res->status << endl;
 
         //Writing in file. . .
-        ofstream file(req1[3]);
+        ofstream file;
+        file.open(req1[3]);
         file << res->body;
         file.close();
       } else {
@@ -79,68 +69,59 @@ int main(int argc, char** argv) {
         cout << res->body << endl;
       }
     } else {
-        std::cout << res.error() << std::endl;
+        cout << res->body << endl;
     }
   } else if (req1[0] == "POST" || req1[0] == "post") {
       //Convertiere parameter von string auf char *
-      char *params1 = convert(req1[3]);
+      const char *params1 = req1[3].c_str();
       //Convertiere Datentyp von string auf char *
-      char *dat_type1 = convert(req1[4]);
+      const char *dat_type1 = req1[4].c_str();
 
       if (req1.size() > 5) {
         //Konvertiere Username bei Basic auth
-        char *user1 = convert(req1[5]);
+        const char *user1 = req1[5].c_str();
 
         //Konvertiere Passwort bei Basic auth
-        char *pw1 = convert(req1[6]);
+        const char *pw1 = req1[6].c_str();
 
         cli.set_basic_auth(user1, pw1);
       }
       
       if (auto res = cli.Post(sub1, params1, dat_type1)) {
-        if (res->status == 200) {
-          std::cout << res->body << std::endl;
-        }
+        cout << res->status << endl;
+        cout << res->body << endl;
       } else {
-          std::cout << res.error() << std::endl;
+        cout << res.error() << endl;
       }
   } else if (req1[0] == "PUT" || req1[0] == "put") {
       //Convertiere parameter von string auf char *
-      char *params1 = convert(req1[3]);
+      const char *params1 = req1[3].c_str();
       //Convertiere Datentyp von string auf char *
-      char *dat_type1 = convert(req1[4]);
+      const char *dat_type1 = req1[4].c_str();
 
       if (req1.size() > 5) {
         //Konvertiere Username bei Basic auth
-        char *user1;
-        string user1_obj(req1[5]);
-        user1 = &user1_obj[0];
+        const char *user1 = req1[5].c_str();
   
         //Konvertiere Passwort bei Basic auth
-        char *pw1;
-        string pw1_obj(req1[6]);
-        pw1 = &pw1_obj[0];
+        const char *pw1 = req1[6].c_str();
   
         cli.set_basic_auth(user1, pw1);
       }
 
       if (auto res = cli.Put(sub1, params1, dat_type1)) {
-        if (res->status == 200) {
-          cout << res->body << endl;
-        } else {
-          cout << res->status << endl;
-          cout << res->body << endl;
-        }
+        cout << res->status << endl;
+        cout << res->body << endl;
       } else {
-          cout << res.error() << endl;
+        cout << res.error() << endl;
       }
   } else if (req1[0] == "DELETE" || req1[0] == "delete") {
       if (req1.size() > 3) {
         //Konvertiere Username bei Basic auth
-        char *user1 = convert(req1[3])
+        const char *user1 = req1[3].c_str();
   
         //Konvertiere Passwort bei Basic auth
-        char *pw1 = convert(req1[4]);
+        const char *pw1 = req1[4].c_str();
   
         cli.set_basic_auth(user1, pw1);
       }
@@ -155,11 +136,7 @@ int main(int argc, char** argv) {
 
 
 
-    
 
-  
-
-    
 
   return 0;
 }
