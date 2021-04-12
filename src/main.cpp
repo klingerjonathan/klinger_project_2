@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
       //Convertiere Datentyp von string auf char *
       const char *dat_type2 = req2[4].c_str();
 
-      if (req1.size() > 5) {
+      if (req2.size() > 5) {
         spdlog::info("2. Request: Authentication erkannt!");
         //Konvertiere Username bei Basic auth
         const char *user2 = req2[5].c_str();
@@ -259,6 +259,118 @@ int main(int argc, char** argv) {
       } else {
         spdlog::critical("2. Request: DELETE nicht erfolgreich");
         spdlog::warn("2. Request: Error: {}", res2.error());
+      }
+  }
+
+  //REQ3
+  //Conversion von req3
+  //URL
+  const char *url3 = req3[1].c_str();
+  //"/"
+  const char *sub3 = req3[2].c_str();
+
+
+  //Interpretation des inputs
+  httplib::Client cli3(url3);
+  if (req3[0] == "GET" || req3[0] == "get") { 
+    spdlog::info("3. Request: GET erkannt");
+    if (req2.size() > 4) {
+      spdlog::info("3. Request: Authentication erkannt!");
+      //Konvertiere Username bei Basic auth
+      const char *user3 = req3[4].c_str();
+      //Konvertiere Passwort bei Basic auth
+      const char *pw3 = req3[5].c_str();
+
+      cli.set_basic_auth(user3, pw3);
+    }
+
+    if (auto res3 = cli3.Get(sub3)) {
+      if (res3->status == 200) {
+        spdlog::info("3. Request: status: {}", res3->status);
+
+        //Writing in file. . .
+        ofstream file;
+        file.open(req3[3]);
+        file << res3->body;
+        file.close();
+        spdlog::info("3. Request: GET response erfolgreich in Datei geschrieben");
+      } else {
+        spdlog::warn("3. Request: Fehlercode erkannt!");
+        spdlog::warn("3. Request: Code: {}", res3->status);
+        spdlog::warn("3. Request: Message: {}", res3->body);
+      }
+    } else {
+        cout << res3.error() << endl;
+    }
+  } else if (req3[0] == "POST" || req3[0] == "post") {
+      spdlog::info("3. Request: POST erkannt");
+      //Convertiere parameter von string auf char *
+      const char *params3 = req3[3].c_str();
+      //Convertiere Datentyp von string auf char *
+      const char *dat_type3 = req3[4].c_str();
+
+      if (req3.size() > 5) {
+        spdlog::info("3. Request: Authentication erkannt!");
+        //Konvertiere Username bei Basic auth
+        const char *user3 = req3[5].c_str();
+
+        //Konvertiere Passwort bei Basic auth
+        const char *pw3 = req3[6].c_str();
+
+        cli.set_basic_auth(user3, pw3);
+      }
+      
+      if (auto res3 = cli3.Post(sub3, params3, dat_type3)) {
+        spdlog::warn("3. Request: Status: {}", res3->status);
+        spdlog::warn("3. Request: Message: {}", res3->body);
+      } else {
+        spdlog::critical("3. Request: POST nicht erfolgreich");
+        spdlog::warn("3. Request: Error: {}", res3.error());
+      }
+  } else if (req3[0] == "PUT" || req3[0] == "put") {
+      spdlog::info("3. Request: PUT erkannt");
+      //Convertiere parameter von string auf char *
+      const char *params3 = req3[3].c_str();
+      //Convertiere Datentyp von string auf char *
+      const char *dat_type3 = req3[4].c_str();
+
+      if (req3.size() > 5) {
+        spdlog::info("3. Request: Authentication erkannt!");
+        //Konvertiere Username bei Basic auth
+        const char *user3 = req3[5].c_str();
+  
+        //Konvertiere Passwort bei Basic auth
+        const char *pw3 = req3[6].c_str();
+  
+        cli.set_basic_auth(user3, pw3);
+      }
+
+      if (auto res3 = cli3.Put(sub3, params3, dat_type3)) {
+        spdlog::warn("3. Request: Status: {}", res3->status);
+        spdlog::warn("3. Request: Message: {}", res3->body);
+      } else {
+        spdlog::critical("3. Request: PUT nicht erfolgreich");
+        spdlog::warn("3. Request: Error: {}", res3.error());
+      }
+  } else if (req3[0] == "DELETE" || req3[0] == "delete") {
+      spdlog::info("3. Request: DELETE erkannt");
+      if (req3.size() > 3) {
+        spdlog::info("3. Request: Authentication erkannt!");
+        //Konvertiere Username bei Basic auth
+        const char *user3 = req3[3].c_str();
+  
+        //Konvertiere Passwort bei Basic auth
+        const char *pw3 = req3[4].c_str();
+  
+        cli.set_basic_auth(user3, pw3);
+      }
+
+      if (auto res3 = cli3.Delete(sub3)) {
+        spdlog::warn("3. Request: Status: {}", res3->status);
+        spdlog::warn("3. Request: Message: {}", res3->body);
+      } else {
+        spdlog::critical("3. Request: DELETE nicht erfolgreich");
+        spdlog::warn("3. Request: Error: {}", res3.error());
       }
   }
 
