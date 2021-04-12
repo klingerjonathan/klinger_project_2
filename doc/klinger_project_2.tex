@@ -1,0 +1,115 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Klinger Project 1}
+\author{Jonathan Klinger }
+\date{January 2021}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{1cm}
+            
+        \Huge
+        \textbf{Jonathan Klinger}
+            
+        \vspace{0.5cm}
+        \LARGE
+        5BHIF
+            
+        \vspace{1.5cm}
+            
+        \textbf{Einfacher HTTP 1.1 Client}
+            
+        \vfill
+            
+        A short introduction to HTTP 1.1, it's requests and a simple Client written in C++
+            
+        \vspace{0.8cm}
+            
+        \Large
+        Abteilung Informatik\\
+        HTBLuVA Wiener Neustadt\\
+        Jänner 2021
+            
+    \end{center}
+\end{titlepage}
+
+\tableofcontents
+\pagebreak
+
+\section{HTTP}
+
+The Hypertext Transfer Protocol is a protocol designed for transmitting hypermedia documents (e.g., HTML), which is settled in the application-layer of the OSI and TCP/IP model. The main focus of the protocol is on the communication between a client and a server. 
+\\
+HTTP is a stateless protocol.
+
+\begin{center} Stateless: A protocol is stateless when it is not required for the Server to retain session information or a status about each communicating partner. Usually clients send requests to the server which responds according to it. 
+\end{center}
+
+\subsection{HTTP 1.1}
+This version of the protocol was released in 1997 and came with a number of improvements to its predecessor HTTP 1.0 and 0.9. E.g., Chunked responses were now supported which means that the sender could add additional header after the message body.
+
+\subsection{HTTP Requests}
+HTTP comes with a number of possible requests. The type is specified in the header of the message. Here are the most important, which are also the same I implemented in my program: 
+
+\begin{itemize}
+    \item GET - request data from a specified source. This type of request can be cached and also be bookmarked.
+    \item POST - send data to a server to create a resource. These are never cached and cannot be bookmarked.
+    \item PUT - send data to a server to update or create a resource. Calling the same PUT request multiple times will always end in the same result while calling the same POST request multiple times will end in creating the same resource multiple times.
+    \item DELETE - delete a specified resource.
+\end{itemize}
+
+\subsection{HTTP Authentication}
+HTTP provides basic authentication which is implemented in the program. The server identifies issues before serving the requested content. 
+
+\subsection{HTTP Status Codes}
+Every HTTP response comes with a status codes. There are enough to suit every situation possible. Here are the most important. 
+
+\begin{itemize}
+    \item 2xx - Success. Representative 200: OK
+    \item 4xx - Client Errors. Representative 401: Unauthorized
+    \item 5xx - Server Errors. Representative 500: Internal Server Error
+\end{itemize}
+
+With the help of these codes it is possible for a Client to react to the Server and vice versa. 
+
+\section{My Solution}
+The language I coded my solution in is C++. It offers a lot of possible approaches. For example 
+I decided to work with the C++ library cpp-httplib (linked below).
+
+\vspace{\baselineskip}
+
+This library offers function for all the request-types that are explained above. With the help of CLI11 and spdlog I created a program which makes it possible to send 3 requests and save the result to a file.
+
+\vspace{\baselineskip}
+
+The program informs the user about every step taken. Starting with how the input is interpreted to a info that the response is successfully written to a file.
+
+\vspace{\baselineskip}
+
+Error Messages from the Server are directly passed to the user as are the HTTP Status Codes. 
+
+\subsection{Difficulties}
+The only difficulty that was encountered during the development was the conversion from string to char *. The input is saved in a vector of strings but the library needs char * passed on their functions. 
+At first a function was made that assigned the reference to a string object to a char *. Later the function "c\textunderscore str()" was found which converts strings to constant char *. Therefore all char * where made constant. Problem solved. 
+
+
+\section{Sources}
+\begin{itemize}
+  \item https://www.w3schools.com/tags/ref\textunderscore httpmethods.asps
+  \item https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics\textunderscore of\textunderscore HTTP/Evolution\textunderscore of\textunderscore HTTP
+  \item https://www.w3.org/Protocols/rfc2616/rfc2616.html
+  \item https://tools.ietf.org/html/rfc2616
+  \item https://github.com/yhirose/cpp-httplib
+\end{itemize}
+
+
+
+
+
+
+
+
+\end{document}
