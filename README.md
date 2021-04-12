@@ -21,7 +21,7 @@ Ein Beispielaufruf:
 Jeder aufruf startet mit der Zahl des requests. Also -1 für den Ersten -2 für den Zweiten usw. 
 Danach folgt die URL des Zielservers. Es *muss* ein weiterer Pfad angegeben werden als nächstes (zumindest ein /). Danach folgt der Dateiname in den das Ergebnis gespeichert werden soll und gegebenenfalls Username und Passwort für eine Authentifizierung. 
 
-##Hinweise 
+## Hinweise 
 Leider habe ich die letzten Commits nach 23:59 getätigt war aber dennoch Bemüht rechtzeitig Fertig zu werden. Ich denke ich habe die Aufgabe (auch nach Rückfrage per E-Mail) einfach aber passend gelöst und bin trotz mehrerer Rückschläge fertig geworden. 
 
 MfG
