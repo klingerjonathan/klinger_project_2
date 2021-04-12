@@ -26,5 +26,7 @@ Leider habe ich die letzten Commits nach 23:59 getätigt war aber dennoch Bemüh
 
 Außerdem sind bei mir jegliche Versuche httplib und spdlog auch mit der meson_option.txt einzubinden auch nach rücksprache mit Kollegen nicht funktioniert weshalb sie in /include zu finden sind. :/ 
 
+Anm.: Habe Vergessen die Ausarbeitung rechtzeitig ins repo hinzuzufügen. Bitte um Nachsicht!
+
 MfG
 Jonathan Klinger
