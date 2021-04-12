@@ -24,5 +24,7 @@ Danach folgt die URL des Zielservers. Es *muss* ein weiterer Pfad angegeben werd
 ## Hinweise 
 Leider habe ich die letzten Commits nach 23:59 getätigt war aber dennoch Bemüht rechtzeitig Fertig zu werden. Ich denke ich habe die Aufgabe (auch nach Rückfrage per E-Mail) einfach aber passend gelöst und bin trotz mehrerer Rückschläge fertig geworden. 
 
+Außerdem sind bei mir jegliche Versuche httplib und spdlog auch mit der meson_option.txt einzubinden auch nach rücksprache mit Kollegen nicht funktioniert weshalb sie in /include zu finden sind. :/ 
+
 MfG
 Jonathan Klinger
