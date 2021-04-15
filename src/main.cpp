@@ -18,6 +18,9 @@
 using namespace std;
 using namespace asio::ip;
 
+asio::io_context ctx;
+tcp::resolver resolve(ctx);
+
 string base64(string str) {
   string command = "printf " + str + " | base64 > base64.txt";
   system(command.c_str());
@@ -36,6 +39,118 @@ string get_basic_header(string type, string path, string url) {
         "Connection: close\r\n"
   };
   return result;
+}
+
+void send_GET_DELETE(vector<string> input, string n) {
+  try {
+      spdlog::info(n + ". Request: gestartet...");
+      auto results = resolve.resolve(input[1], input[2]);
+      tcp::socket sock{ctx};
+      asio::connect(sock, results);
+
+      unsigned int file_place = 4;
+      //HTTP Request to send
+      string req_string = get_basic_header(input[0], input[3], input[1]);
+
+      if (input.size() == 7) {
+        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
+        file_place = 6;
+        string auth = input[4] + ":" + input[5];
+        string base_auth = base64(auth);
+        req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
+      } else {
+        req_string = req_string + "\r\n";
+      }
+
+      //String to Char[]
+      char req[150];
+      for (unsigned int i=0; i<req_string.length(); i++) {
+        req[i] = req_string[i];
+      }
+
+      size_t request_length = strlen(req);
+      asio::write(sock, asio::buffer(req, request_length));
+      char reply[1000];
+      error_code ec;
+
+      size_t reply_length = asio::read(sock, asio::buffer(reply), ec);
+
+      //Char[] to String
+      string res = "";
+      for (unsigned int i=0; i<reply_length; i++) {
+        res = res + reply[i];
+      }
+      //Only get body/status from response
+      string body = res.substr(res.find("\r\n\r\n") + 4);
+      string status = res.substr(0, res.find("\r\n"));
+
+      spdlog::info(n + ". Request: Status: " + status);
+      //Writing in file. . .
+      if (input.size() == file_place + 1) {
+        ofstream file;
+        file.open(input[file_place]);
+        file << body;
+        file.close();
+        spdlog::info(n + ". Request: Datei erfolgreich erstellt");
+      } else {
+        spdlog::error(n + ". Request: Konnte nicht in datei schreiben...");
+      }
+      
+    } catch (asio::system_error& e) {
+      cerr << e.what() << endl;
+    } 
+      
+}
+
+void send_POST_PUT(vector<string> input, string n) {
+  try {
+      spdlog::info(n + ". Request: gestartet...");
+      auto results = resolve.resolve(input[1], input[2]);
+      tcp::socket sock{ctx};
+      asio::connect(sock, results);
+
+      //HTTP Request to send
+      string req_string = get_basic_header(input[0], input[3], input[1]);
+
+      if (input.size() == 7) {
+        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
+        string auth = input[4] + ":" + input[5];
+        string base_auth = base64(auth);
+        req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
+      } 
+
+      req_string = req_string +
+          "Content-Type: " + input[4] + "\r\n"
+          "Content-Length: " + to_string(input[5].length()) + "\r\n\r\n" +
+          input[5];
+
+      //String to Char[]
+      char req[150];
+      for (unsigned int i=0; i<req_string.length(); i++) {
+        req[i] = req_string[i];
+      }
+
+      size_t request_length = strlen(req);
+      asio::write(sock, asio::buffer(req, request_length));
+      char reply[1000];
+      error_code ec;
+
+      size_t reply_length = asio::read(sock, asio::buffer(reply), ec);
+
+      //Char[] to String
+      string res = "";
+      for (unsigned int i=0; i<reply_length; i++) {
+        res = res + reply[i];
+      }
+      //Only get body/status from response
+      string body = res.substr(res.find("\r\n\r\n") + 4);
+      string status = res.substr(0, res.find("\r\n"));
+
+      spdlog::info(n + ". Request Status: " + status);
+
+      } catch (asio::system_error& e) {
+      cerr << e.what() << endl;
+      } 
 }
 
 
@@ -62,240 +177,37 @@ int main(int argc, char** argv) {
   //                reqx[0]        reqx[1] reqx[2]  reqx[3]    reqx[4]
 
   
-  /* Request Header:
-    "GET /t/jonny/post HTTP/1.1
-    \r\nHost: ptsv2.com
-    \r\nConnection: close\r\n
-    \r\n"
-  */
-    
-  
-  asio::io_context ctx;
-  tcp::resolver resolve(ctx);
-
-  //Input Interpretieren
-  if (req1[0] != "") {
-    try {
-      auto results = resolve.resolve(req1[1], req1[2]);
-      tcp::socket sock1{ctx};
-      spdlog::info("Request 1: connecting...");
-      asio::connect(sock1, results);
-
-      //HTTP Request to send
-      string req_string = get_basic_header(req1[0], req1[3], req1[1]);
-      int file_pos = 4;
-
-      if (req1[0] == "GET" || req1[0] == "DELETE") {
-        spdlog::info("Request 1: " + req1[0] + " erkannt");
-
-        if (req1.size() == 7) {
-          spdlog::info("Request 1: Authentifizierung erkannt");
-
-          string auth = req1[4] + ":" + req1[5];
-          string base_auth = base64(auth);
-          req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
-        } else {
-          req_string = req_string + "\r\n";
-        }
-        
-      } else if (req1[0] == "POST" || req1[0] == "PUT") {
-        file_pos = 6;
-        spdlog::info("Request 1: " + req1[0] + " erkannt");
-        req_string = req_string +
-          "Content-Type: " + req1[4] + "\r\n"
-          "Content-Length: " + to_string(req1[5].length()) + "\r\n\r\n" +
-          req1[5];
-      } else {
-        spdlog::error("Request 1: Falscher Request-TYP!");
-      }
-
-      //String to Char[]
-      char req[150];
-      for (unsigned int i=0; i<req_string.length(); i++) {
-        req[i] = req_string[i];
-      }
-
-      size_t request_length = strlen(req);
-      asio::write(sock1, asio::buffer(req, request_length));
-      char reply[1000];
-      error_code ec;
-
-      size_t reply_length = asio::read(sock1, asio::buffer(reply), ec);
-
-      //Char[] to String
-      string res = "";
-      for (unsigned int i=0; i<reply_length; i++) {
-        res = res + reply[i];
-      }
-      //Only get body/status from response
-      string body = res.substr(res.find("\r\n\r\n") + 4);
-      string status = res.substr(0, res.find("\r\n"));
-
-      spdlog::info("Request 1: Status: " + status);
-      //Writing in file. . .
-      ofstream file;
-      file.open(req1[file_pos]);
-      file << body;
-      file.close();
-      spdlog::info("1. Request: GET response erfolgreich in Datei geschrieben");
-
-    } catch (asio::system_error& e) {
-      cerr << e.what() << endl;
-    } 
-   
-
+  if (req1[0] == "GET" || req1[0] == "DELETE") {
+    send_GET_DELETE(req1, "1");
+  } else if (req1[0] == "POST" || req1[0] == "PUT") {
+    send_POST_PUT(req1, "1");
+  } else {
+    spdlog::error("1. Request: Typ nicht erkannt");
   }
 
-  if (req2[0] != "") {
-    try {
-      auto results = resolve.resolve(req2[1], req2[2]);
-      tcp::socket sock{ctx};
-      spdlog::info("Request 2: connecting...");
-      asio::connect(sock, results);
-
-      //HTTP Request to send
-      string req_string = get_basic_header(req2[0], req2[3], req2[1]);
-      int file_pos = 4;
-
-      if (req2[0] == "GET" || req2[0] == "DELETE") {
-        spdlog::info("Request 2: " + req2[0] + " erkannt");
-
-        if (req2.size() == 7) {
-          spdlog::info("Request 2: Authentifizierung erkannt");
-
-          string auth = req2[4] + ":" + req2[5];
-          string base_auth = base64(auth);
-          req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
-        } else {
-          req_string = req_string + "\r\n";
-        }
-        
-      } else if (req2[0] == "POST" || req2[0] == "PUT") {
-        file_pos = 6;
-        spdlog::info("Request 2: " + req2[0] + " erkannt");
-        req_string = req_string +
-          "Content-Type: " + req2[4] + "\r\n"
-          "Content-Length: " + to_string(req2[5].length()) + "\r\n\r\n" +
-          req2[5];
-      } else {
-        spdlog::error("Request 1: Falscher Request-TYP!");
-      }
-
-      //String to Char[]
-      char req[150];
-      for (unsigned int i=0; i<req_string.length(); i++) {
-        req[i] = req_string[i];
-      }
-
-      size_t request_length = strlen(req);
-      asio::write(sock, asio::buffer(req, request_length));
-      char reply[1000];
-      error_code ec;
-
-      size_t reply_length = asio::read(sock, asio::buffer(reply), ec);
-
-      //Char[] to String
-      string res = "";
-      for (unsigned int i=0; i<reply_length; i++) {
-        res = res + reply[i];
-      }
-      //Only get body/status from response
-      string body = res.substr(res.find("\r\n\r\n") + 4);
-      string status = res.substr(0, res.find("\r\n"));
-
-      spdlog::info("Request 2: Status: " + status);
-      //Writing in file. . .
-      ofstream file;
-      file.open(req2[file_pos]);
-      file << body;
-      file.close();
-      spdlog::info("Request 2: GET response erfolgreich in Datei geschrieben");
-
-    } catch (asio::system_error& e) {
-      cerr << e.what() << endl;
-    } 
-   
-
+  if (req2.size() > 0) {
+    if (req2[0] == "GET" || req2[0] == "DELETE") {
+      send_GET_DELETE(req2, "2");
+    } else if (req2[0] == "POST" || req2[0] == "PUT") {
+      send_POST_PUT(req2, "2");
+    } else {
+      spdlog::error("2. Request: Typ nicht erkannt");
+    }
   }
 
-  //Request 3
-  if (req3[0] != "") {
-    try {
-      auto results = resolve.resolve(req3[1], req3[2]);
-      tcp::socket sock{ctx};
-      spdlog::info("Request 3: connecting...");
-      asio::connect(sock, results);
-
-      //HTTP Request to send
-      string req_string = get_basic_header(req3[0], req3[3], req3[1]);
-      int file_pos = 4;
-
-      if (req3[0] == "GET" || req3[0] == "DELETE") {
-        spdlog::info("Request 3: " + req1[0] + " erkannt");
-
-        if (req1.size() == 7) {
-          spdlog::info("Request 3: Authentifizierung erkannt");
-
-          string auth = req3[4] + ":" + req3[5];
-          string base_auth = base64(auth);
-          req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
-        } else {
-          req_string = req_string + "\r\n";
-        }
-        
-      } else if (req3[0] == "POST" || req3[0] == "PUT") {
-        file_pos = 6;
-        spdlog::info("Request 3: " + req3[0] + " erkannt");
-        req_string = req_string +
-          "Content-Type: " + req3[4] + "\r\n"
-          "Content-Length: " + to_string(req3[5].length()) + "\r\n\r\n" +
-          req3[5];
-      } else {
-        spdlog::error("Request 3: Falscher Request-TYP!");
-      }
-
-      //String to Char[]
-      char req[150];
-      for (unsigned int i=0; i<req_string.length(); i++) {
-        req[i] = req_string[i];
-      }
-
-      size_t request_length = strlen(req);
-      asio::write(sock, asio::buffer(req, request_length));
-      char reply[1000];
-      error_code ec;
-
-      size_t reply_length = asio::read(sock, asio::buffer(reply), ec);
-
-      //Char[] to String
-      string res = "";
-      for (unsigned int i=0; i<reply_length; i++) {
-        res = res + reply[i];
-      }
-      //Only get body/status from response
-      string body = res.substr(res.find("\r\n\r\n") + 4);
-      string status = res.substr(0, res.find("\r\n"));
-
-      spdlog::info("Request 3: Status: " + status);
-      //Writing in file. . .
-      ofstream file;
-      file.open(req3[file_pos]);
-      file << body;
-      file.close();
-      spdlog::info("Request 2: GET response erfolgreich in Datei geschrieben");
-
-    } catch (asio::system_error& e) {
-      cerr << e.what() << endl;
-    } 
-   
-
+  if (req3.size() > 0) {
+    if (req3[0] == "GET" || req3[0] == "DELETE") {
+      send_GET_DELETE(req1, "3");
+    } else if (req3[0] == "POST" || req3[0] == "PUT") {
+      send_POST_PUT(req3, "3");
+    } else {
+      spdlog::error("3. Request: Typ nicht erkannt");
+    }
   }
 
   
-  
 
-
-
+ 
 
   return 0;
 }
