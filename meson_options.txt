@@ -1,1 +1,2 @@
+option('asio_include_dir', type : 'string', value : '/home/jonny/asio-1.18.1/include', description : 'the include dir of asio')
 
