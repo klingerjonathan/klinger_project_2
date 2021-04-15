@@ -4,23 +4,43 @@
  * date: 04.03.21
  */
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <thread>
+#include <string>
 #include <fstream>
+
 #include "spdlog/spdlog.h"
-
-
-//#define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "httplib.h"
+#include "asio.hpp"
 #include "CLI11.hpp"
 
 
 using namespace std;
+using namespace asio::ip;
+
+string base64(string str) {
+  string command = "printf " + str + " | base64 > base64.txt";
+  system(command.c_str());
+
+  ifstream ifs("base64.txt");
+  string ret{ std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>() };
+  ifs.close();
+  return ret;
+}
+
+string get_basic_header(string type, string path, string url) {
+  string result = {
+        type + " " + path + " HTTP/1.1\r\n"
+        "Host: " + url + "\r\n"
+        //"Authorization: Basic " + base_auth + "\r\n" 
+        "Connection: close\r\n"
+  };
+  return result;
+}
 
 
 int main(int argc, char** argv) {
-  spdlog::info("Einfacher HTTP 1.1 Client gestartet!");
+  spdlog::info("HTTP 1.1 Client gestartet!");
   //Interface
   CLI::App app{"Simple HTTP1.1 Client"};
 
@@ -37,344 +57,97 @@ int main(int argc, char** argv) {
 
   CLI11_PARSE(app, argc, argv);
   spdlog::info("Userinput erfolgreich aufgenommen!");
+  //Reihenfolge
+  // -[1/2/3] [GET/POST/PUT/DELETE] [URL] [PORT] [VERZEICHNIS] [DATEI] 
+  //                reqx[0]        reqx[1] reqx[2]  reqx[3]    reqx[4]
 
-  //Conversion von req1 
-  //URL
-  const char *url1 = req1[1].c_str();
-  //"/"
-  const char *sub1 = req1[2].c_str();
-
-
-  //Interpretation des inputs
-  //req1
-  httplib::Client cli(url1);
-  if (req1[0] == "GET" || req1[0] == "get") { 
-    spdlog::info("1. Request: GET erkannt");
-    if (req1.size() > 4) {
-      spdlog::info("1. Request: Authentication erkannt!");
-      //Konvertiere Username bei Basic auth
-      const char *user1 = req1[4].c_str();
-      //Konvertiere Passwort bei Basic auth
-      const char *pw1 = req1[5].c_str();
-
-      cli.set_basic_auth(user1, pw1);
-    }
-
-    if (auto res = cli.Get(sub1)) {
-      if (res->status == 200) {
-        spdlog::info("1. Request: status: {}", res->status);
-
-        //Writing in file. . .
-        ofstream file;
-        file.open(req1[3]);
-        file << res->body;
-        file.close();
-        spdlog::info("1. Request: GET response erfolgreich in Datei geschrieben");
-      } else {
-        spdlog::warn("1. Request: Fehlercode erkannt!");
-        spdlog::warn("1. Request: Code: {}", res->status);
-        spdlog::warn("1. Request: Message: {}", res->body);
-      }
-    } else {
-        cout << res.error() << endl;
-    }
-  } else if (req1[0] == "POST" || req1[0] == "post") {
-      spdlog::info("1. Request: POST erkannt");
-      //Convertiere parameter von string auf char *
-      const char *params1 = req1[3].c_str();
-      //Convertiere Datentyp von string auf char *
-      const char *dat_type1 = req1[4].c_str();
-
-      if (req1.size() > 5) {
-        spdlog::info("1. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user1 = req1[5].c_str();
-
-        //Konvertiere Passwort bei Basic auth
-        const char *pw1 = req1[6].c_str();
-
-        cli.set_basic_auth(user1, pw1);
-      }
-      
-      if (auto res = cli.Post(sub1, params1, dat_type1)) {
-        spdlog::warn("1. Request: Status: {}", res->status);
-        spdlog::warn("1. Request: Message: {}", res->body);
-      } else {
-        spdlog::critical("1. Request: POST nicht erfolgreich");
-        spdlog::warn("1. Request: Error: {}", res.error());
-      }
-  } else if (req1[0] == "PUT" || req1[0] == "put") {
-      spdlog::info("1. Request: PUT erkannt");
-      //Convertiere parameter von string auf char *
-      const char *params1 = req1[3].c_str();
-      //Convertiere Datentyp von string auf char *
-      const char *dat_type1 = req1[4].c_str();
-
-      if (req1.size() > 5) {
-        spdlog::info("1. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user1 = req1[5].c_str();
   
-        //Konvertiere Passwort bei Basic auth
-        const char *pw1 = req1[6].c_str();
+  /* Request Header:
+    "GET /t/jonny/post HTTP/1.1
+    \r\nHost: ptsv2.com
+    \r\nConnection: close\r\n
+    \r\n"
+  */
+    
   
-        cli.set_basic_auth(user1, pw1);
+  asio::io_context ctx;
+  tcp::resolver resolve(ctx);
+
+  //Input Interpretieren
+  if (req1[0] != "") {
+    try {
+      auto results1 = resolve.resolve(req1[1], req1[2]);
+      tcp::socket sock1{ctx};
+      spdlog::info("Request 1: connecting...");
+      asio::connect(sock1, results1);
+
+      //HTTP Request to send
+      string req_string = get_basic_header(req1[0], req1[3], req1[1]);
+      int file_pos = 4;
+
+      if (req1[0] == "GET" || req1[0] == "DELETE") {
+        spdlog::info("Request 1: " + req1[0] + " erkannt");
+
+        if (req1.size() == 7) {
+          spdlog::info("Request 1: Authentifizierung erkannt");
+
+          string auth = req1[4] + ":" + req1[5];
+          string base_auth = base64(auth);
+          req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
+        } else {
+          req_string = req_string + "\r\n";
+        }
+        
+      } else if (req1[0] == "POST" || req1[0] == "PUT") {
+        file_pos = 6;
+        spdlog::info("Request 1: " + req1[0] + " erkannt");
+        req_string = req_string +
+          "Content-Type: " + req1[4] + "\r\n"
+          "Content-Length: " + to_string(req1[5].length()) + "\r\n\r\n" +
+          req1[5];
+      } else {
+        spdlog::error("Request 1: Falscher Request-TYP!");
       }
 
-      if (auto res = cli.Put(sub1, params1, dat_type1)) {
-        spdlog::warn("1. Request: Status: {}", res->status);
-        spdlog::warn("1. Request: Message: {}", res->body);
-      } else {
-        spdlog::critical("1. Request: PUT nicht erfolgreich");
-        spdlog::warn("1. Request: Error: {}", res.error());
-      }
-  } else if (req1[0] == "DELETE" || req1[0] == "delete") {
-      spdlog::info("1. Request: DELETE erkannt");
-      if (req1.size() > 3) {
-        spdlog::info("1. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user1 = req1[3].c_str();
-  
-        //Konvertiere Passwort bei Basic auth
-        const char *pw1 = req1[4].c_str();
-  
-        cli.set_basic_auth(user1, pw1);
+      //String to Char[]
+      char req[150];
+      for (unsigned int i=0; i<req_string.length(); i++) {
+        req[i] = req_string[i];
       }
 
-      if (auto res = cli.Delete(sub1)) {
-        spdlog::warn("1. Request: Status: {}", res->status);
-        spdlog::warn("1. Request: Message: {}", res->body);
-      } else {
-        spdlog::critical("1. Request: DELETE nicht erfolgreich");
-        spdlog::warn("1. Request: Error: {}", res.error());
+      size_t request_length = strlen(req);
+      asio::write(sock1, asio::buffer(req, request_length));
+      char reply[1000];
+      error_code ec;
+
+      size_t reply_length = asio::read(sock1, asio::buffer(reply), ec);
+
+      //Char[] to String
+      string res = "";
+      for (unsigned int i=0; i<reply_length; i++) {
+        res = res + reply[i];
       }
+      //Only get body/status from response
+      string body = res.substr(res.find("\r\n\r\n") + 4);
+      string status = res.substr(0, res.find("\r\n"));
+
+      spdlog::info("Request 1: Status: " + status);
+      //Writing in file. . .
+      ofstream file;
+      file.open(req1[file_pos]);
+      file << body;
+      file.close();
+      spdlog::info("1. Request: GET response erfolgreich in Datei geschrieben");
+
+    } catch (asio::system_error& e) {
+      cerr << e.what() << endl;
+    } 
+   
+
   }
 
-  //REQ2
-  //Conversion von req2 
-  //URL
-  const char *url2 = req2[1].c_str();
-  //"/"
-  const char *sub2 = req2[2].c_str();
-
-
-  //Interpretation des inputs
-  httplib::Client cli2(url2);
-  if (req2[0] == "GET" || req2[0] == "get") { 
-    spdlog::info("2. Request: GET erkannt");
-    if (req2.size() > 4) {
-      spdlog::info("2. Request: Authentication erkannt!");
-      //Konvertiere Username bei Basic auth
-      const char *user2 = req2[4].c_str();
-      //Konvertiere Passwort bei Basic auth
-      const char *pw2 = req2[5].c_str();
-
-      cli.set_basic_auth(user2, pw2);
-    }
-
-    if (auto res2 = cli2.Get(sub2)) {
-      if (res2->status == 200) {
-        spdlog::info("2. Request: status: {}", res2->status);
-
-        //Writing in file. . .
-        ofstream file;
-        file.open(req2[3]);
-        file << res2->body;
-        file.close();
-        spdlog::info("2. Request: GET response erfolgreich in Datei geschrieben");
-      } else {
-        spdlog::warn("2. Request: Fehlercode erkannt!");
-        spdlog::warn("2. Request: Code: {}", res2->status);
-        spdlog::warn("2. Request: Message: {}", res2->body);
-      }
-    } else {
-        cout << res2.error() << endl;
-    }
-  } else if (req2[0] == "POST" || req2[0] == "post") {
-      spdlog::info("2. Request: POST erkannt");
-      //Convertiere parameter von string auf char *
-      const char *params2 = req2[3].c_str();
-      //Convertiere Datentyp von string auf char *
-      const char *dat_type2 = req2[4].c_str();
-
-      if (req2.size() > 5) {
-        spdlog::info("2. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user2 = req2[5].c_str();
-
-        //Konvertiere Passwort bei Basic auth
-        const char *pw2 = req2[6].c_str();
-
-        cli.set_basic_auth(user2, pw2);
-      }
-      
-      if (auto res2 = cli2.Post(sub2, params2, dat_type2)) {
-        spdlog::warn("2. Request: Status: {}", res2->status);
-        spdlog::warn("2. Request: Message: {}", res2->body);
-      } else {
-        spdlog::critical("2. Request: POST nicht erfolgreich");
-        spdlog::warn("2. Request: Error: {}", res2.error());
-      }
-  } else if (req2[0] == "PUT" || req2[0] == "put") {
-      spdlog::info("2. Request: PUT erkannt");
-      //Convertiere parameter von string auf char *
-      const char *params2 = req2[3].c_str();
-      //Convertiere Datentyp von string auf char *
-      const char *dat_type2 = req2[4].c_str();
-
-      if (req2.size() > 5) {
-        spdlog::info("2. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user2 = req2[5].c_str();
   
-        //Konvertiere Passwort bei Basic auth
-        const char *pw2 = req2[6].c_str();
   
-        cli.set_basic_auth(user2, pw2);
-      }
-
-      if (auto res2 = cli2.Put(sub2, params2, dat_type2)) {
-        spdlog::warn("2. Request: Status: {}", res2->status);
-        spdlog::warn("2. Request: Message: {}", res2->body);
-      } else {
-        spdlog::critical("2. Request: PUT nicht erfolgreich");
-        spdlog::warn("2. Request: Error: {}", res2.error());
-      }
-  } else if (req2[0] == "DELETE" || req2[0] == "delete") {
-      spdlog::info("2. Request: DELETE erkannt");
-      if (req2.size() > 3) {
-        spdlog::info("2. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user2 = req2[3].c_str();
-  
-        //Konvertiere Passwort bei Basic auth
-        const char *pw2 = req2[4].c_str();
-  
-        cli.set_basic_auth(user2, pw2);
-      }
-
-      if (auto res2 = cli.Delete(sub2)) {
-        spdlog::warn("2. Request: Status: {}", res2->status);
-        spdlog::warn("2. Request: Message: {}", res2->body);
-      } else {
-        spdlog::critical("2. Request: DELETE nicht erfolgreich");
-        spdlog::warn("2. Request: Error: {}", res2.error());
-      }
-  }
-
-  //REQ3
-  //Conversion von req3
-  //URL
-  const char *url3 = req3[1].c_str();
-  //"/"
-  const char *sub3 = req3[2].c_str();
-
-
-  //Interpretation des inputs
-  httplib::Client cli3(url3);
-  if (req3[0] == "GET" || req3[0] == "get") { 
-    spdlog::info("3. Request: GET erkannt");
-    if (req2.size() > 4) {
-      spdlog::info("3. Request: Authentication erkannt!");
-      //Konvertiere Username bei Basic auth
-      const char *user3 = req3[4].c_str();
-      //Konvertiere Passwort bei Basic auth
-      const char *pw3 = req3[5].c_str();
-
-      cli.set_basic_auth(user3, pw3);
-    }
-
-    if (auto res3 = cli3.Get(sub3)) {
-      if (res3->status == 200) {
-        spdlog::info("3. Request: status: {}", res3->status);
-
-        //Writing in file. . .
-        ofstream file;
-        file.open(req3[3]);
-        file << res3->body;
-        file.close();
-        spdlog::info("3. Request: GET response erfolgreich in Datei geschrieben");
-      } else {
-        spdlog::warn("3. Request: Fehlercode erkannt!");
-        spdlog::warn("3. Request: Code: {}", res3->status);
-        spdlog::warn("3. Request: Message: {}", res3->body);
-      }
-    } else {
-        cout << res3.error() << endl;
-    }
-  } else if (req3[0] == "POST" || req3[0] == "post") {
-      spdlog::info("3. Request: POST erkannt");
-      //Convertiere parameter von string auf char *
-      const char *params3 = req3[3].c_str();
-      //Convertiere Datentyp von string auf char *
-      const char *dat_type3 = req3[4].c_str();
-
-      if (req3.size() > 5) {
-        spdlog::info("3. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user3 = req3[5].c_str();
-
-        //Konvertiere Passwort bei Basic auth
-        const char *pw3 = req3[6].c_str();
-
-        cli.set_basic_auth(user3, pw3);
-      }
-      
-      if (auto res3 = cli3.Post(sub3, params3, dat_type3)) {
-        spdlog::warn("3. Request: Status: {}", res3->status);
-        spdlog::warn("3. Request: Message: {}", res3->body);
-      } else {
-        spdlog::critical("3. Request: POST nicht erfolgreich");
-        spdlog::warn("3. Request: Error: {}", res3.error());
-      }
-  } else if (req3[0] == "PUT" || req3[0] == "put") {
-      spdlog::info("3. Request: PUT erkannt");
-      //Convertiere parameter von string auf char *
-      const char *params3 = req3[3].c_str();
-      //Convertiere Datentyp von string auf char *
-      const char *dat_type3 = req3[4].c_str();
-
-      if (req3.size() > 5) {
-        spdlog::info("3. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user3 = req3[5].c_str();
-  
-        //Konvertiere Passwort bei Basic auth
-        const char *pw3 = req3[6].c_str();
-  
-        cli.set_basic_auth(user3, pw3);
-      }
-
-      if (auto res3 = cli3.Put(sub3, params3, dat_type3)) {
-        spdlog::warn("3. Request: Status: {}", res3->status);
-        spdlog::warn("3. Request: Message: {}", res3->body);
-      } else {
-        spdlog::critical("3. Request: PUT nicht erfolgreich");
-        spdlog::warn("3. Request: Error: {}", res3.error());
-      }
-  } else if (req3[0] == "DELETE" || req3[0] == "delete") {
-      spdlog::info("3. Request: DELETE erkannt");
-      if (req3.size() > 3) {
-        spdlog::info("3. Request: Authentication erkannt!");
-        //Konvertiere Username bei Basic auth
-        const char *user3 = req3[3].c_str();
-  
-        //Konvertiere Passwort bei Basic auth
-        const char *pw3 = req3[4].c_str();
-  
-        cli.set_basic_auth(user3, pw3);
-      }
-
-      if (auto res3 = cli3.Delete(sub3)) {
-        spdlog::warn("3. Request: Status: {}", res3->status);
-        spdlog::warn("3. Request: Message: {}", res3->body);
-      } else {
-        spdlog::critical("3. Request: DELETE nicht erfolgreich");
-        spdlog::warn("3. Request: Error: {}", res3.error());
-      }
-  }
-
-
 
 
 
