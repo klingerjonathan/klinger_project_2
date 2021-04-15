@@ -15,8 +15,14 @@ Das Programm ermöglicht es 3 HTTP Request (GET, POST, PUT oder DELETE) an 3 ver
 Ein Beispielaufruf: 
 
 ```
-./klinger_project_2 -1 GET http://www.abc.xyz /def test.txt username passwort
+./klinger_project_2 -1 GET abc.xyz /def test.txt username passwort
 ```
+
+Ein schneller Test kann mit dieser Test Website durchgeführt werden
+```
+./klinger_project_2 -1 GET ptsv2.com 80 /t/jonny/post test.txt  
+```
+
 
 Jeder aufruf startet mit der Zahl des requests. Also -1 für den Ersten -2 für den Zweiten usw. 
 Danach folgt die URL des Zielservers. Es *muss* ein weiterer Pfad angegeben werden als nächstes (zumindest ein /). Danach folgt der Dateiname in den das Ergebnis gespeichert werden soll und gegebenenfalls Username und Passwort für eine Authentifizierung. 
@@ -27,6 +33,7 @@ Leider habe ich die letzten Commits nach 23:59 getätigt war aber dennoch Bemüh
 Außerdem sind bei mir jegliche Versuche httplib und spdlog auch mit der meson_option.txt einzubinden auch nach rücksprache mit Kollegen nicht funktioniert weshalb sie in /include zu finden sind. :/ 
 
 Anm.: Habe Vergessen die Ausarbeitung rechtzeitig ins repo hinzuzufügen. Bitte um Nachsicht!
+
 
 MfG
 Jonathan Klinger
