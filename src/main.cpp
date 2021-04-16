@@ -35,7 +35,6 @@ string get_basic_header(string type, string path, string url) {
   string result = {
         type + " " + path + " HTTP/1.1\r\n"
         "Host: " + url + "\r\n"
-        //"Authorization: Basic " + base_auth + "\r\n" 
         "Connection: close\r\n"
   };
   return result;
@@ -52,12 +51,32 @@ void send_GET_DELETE(vector<string> input, string n) {
       //HTTP Request to send
       string req_string = get_basic_header(input[0], input[3], input[1]);
 
-      if (input.size() == 7) {
+      if (input.size() == 8) {
+        spdlog::info(n + ". Request: Cookies erkannt");
         spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
+
+        file_place = 7;
+
+        string auth = input[5] + ":" + input[6];
+        string base_auth = base64(auth);
+
+        req_string = req_string + 
+        "Authorization: Basic " + base_auth + "\r\n"
+        "Cookie: " + input[4] + "\r\n\r\n";        
+      } else if (input.size() == 7) {
+        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
+
         file_place = 6;
+
         string auth = input[4] + ":" + input[5];
         string base_auth = base64(auth);
-        req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
+
+        req_string = req_string + "Authorization: Basic " + base_auth + "\r\n\r\n";
+      } else if (input.size() == 6) {
+        spdlog::info(n + ". Request: Cookie erkannt");
+        file_place = 5;
+
+        req_string = req_string + "Cookie: " + input[4] + "\r\n\r\n";
       } else {
         req_string = req_string + "\r\n";
       }
@@ -112,11 +131,25 @@ void send_POST_PUT(vector<string> input, string n) {
       //HTTP Request to send
       string req_string = get_basic_header(input[0], input[3], input[1]);
 
-      if (input.size() == 7) {
+      if (input.size() == 8) {
+        spdlog::info(n + ". Request: Cookies erkannt");
+        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
+
+        string auth = input[5] + ":" + input[6];
+        string base_auth = base64(auth);
+
+        req_string = req_string + 
+        "Authorization: Basic " + base_auth + "\r\n"
+        "Cookie: " + input[4] + "\r\n";   
+      } else if (input.size() == 7) {
         spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
         string auth = input[4] + ":" + input[5];
         string base_auth = base64(auth);
         req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
+      } else if (input.size() == 6) {
+        spdlog::info(n + ". Request: Cookie erkannt");
+
+        req_string = req_string + "Cookie: " + input[4] + "\r\n";
       } 
 
       req_string = req_string +
