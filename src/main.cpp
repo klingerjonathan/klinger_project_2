@@ -19,7 +19,7 @@ using namespace std;
 using namespace asio::ip;
 
 asio::io_context ctx;
-tcp::resolver resolve(ctx);
+tcp::resolver resolve(ctx);  
 
 string base64(string str) {
   string command = "printf " + str + " | base64 > base64.txt";
@@ -31,7 +31,7 @@ string base64(string str) {
   return ret;
 }
 
-string get_basic_header(string type, string path, string url) {
+string get_basic_header(string type, string path, string url) {     
   string result = {
         type + " " + path + " HTTP/1.1\r\n"
         "Host: " + url + "\r\n"
@@ -192,16 +192,56 @@ int main(int argc, char** argv) {
   //Interface
   CLI::App app{"Simple HTTP1.1 Client"};
 
-  //Vectors for up to 3 requests
-  vector<string> req1;
-  vector<string> req2;
-  vector<string> req3;
-
   
+  //Erster Request
+  string type1 = "";
+  app.add_option("-type1", type1, "Typ von Request 1");
+  string url1 = "";
+  app.add_option("-url1", url1, "URL von Request 1");
+  string port1 = "";
+  app.add_option("-port1", port1, "Port von Request 1");
+  string path1 = "";
+  app.add_option("-path1", path1, "Path von Request 1");
+  string file1 = "";
+  app.add_option("-file1", file1, "Dateiname von Request 1");
+  string user1 = "";
+  app.add_option("-user1", user1, "User von Request 1");
+  string pw1 = "";
+  app.add_option("-pw1", pw1, "Password von Request 1");
 
-  app.add_option("-1", req1, "First Request");
-  app.add_option("-2", req2, "Second Request");
-  app.add_option("-3", req3, "Third Request");
+  //Zweiter Request
+  string type2 = "";
+  app.add_option("-type1", type2, "Typ von Request 2");
+  string url2 = "";
+  app.add_option("-url1", url2, "URL von Request 2");
+  string port2 = "";
+  app.add_option("-port1", port2, "Port von Request 2");
+  string path2 = "";
+  app.add_option("-path1", path2, "Path von Request 2");
+  string file2 = "";
+  app.add_option("-file1", file2, "Dateiname von Request 2");
+  string user2 = "";
+  app.add_option("-user1", user2, "User von Request 2");
+  string pw2 = "";
+  app.add_option("-pw1", pw2, "Password von Request 2");
+
+  //Dritter Request
+  string type3 = "";
+  app.add_option("-type1", type3, "Typ von Request 3");
+  string url3 = "";
+  app.add_option("-url1", url3, "URL von Request 3");
+  string port3 = "";
+  app.add_option("-port1", port3, "Port von Request 3");
+  string path3 = "";
+  app.add_option("-path1", path3, "Path von Request 3");
+  string file3 = "";
+  app.add_option("-file1", file3, "Dateiname von Request 3");
+  string user3 = "";
+  app.add_option("-user1", user3, "User von Request 3");
+  string pw3 = "";
+  app.add_option("-pw1", pw3, "Password von Request 3");
+
+
 
   CLI11_PARSE(app, argc, argv);
   spdlog::info("Userinput erfolgreich aufgenommen!");
@@ -209,10 +249,14 @@ int main(int argc, char** argv) {
   // -[1/2/3] [GET/POST/PUT/DELETE] [URL] [PORT] [VERZEICHNIS] [DATEI] 
   //                reqx[0]        reqx[1] reqx[2]  reqx[3]    reqx[4]
 
+  vector<string> req1{type1, url1, port1, path1, file1, user1, pw1};
+  vector<string> req2{type2, url2, port2, path2, file2, user2, pw2};
+  vector<string> req3{type3, url3, port3, path3, file3, user3, pw3};
+
   
-  if (req1[0] == "GET" || req1[0] == "DELETE") {
+  if (type1 == "GET" || type1 == "DELETE") {
     send_GET_DELETE(req1, "1");
-  } else if (req1[0] == "POST" || req1[0] == "PUT") {
+  } else if (type1 == "POST" || type1 == "PUT") {
     send_POST_PUT(req1, "1");
   } else {
     spdlog::error("1. Request: Typ nicht erkannt");
