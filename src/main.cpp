@@ -13,10 +13,12 @@
 #include "spdlog/spdlog.h"
 #include "asio.hpp"
 #include "CLI11.hpp"
+#include "json.hpp"
 
 
 using namespace std;
 using namespace asio::ip;
+using namespace nlohmann;
 
 asio::io_context ctx;
 tcp::resolver resolve(ctx);  
@@ -192,55 +194,81 @@ int main(int argc, char** argv) {
   //Interface
   CLI::App app{"Simple HTTP1.1 Client"};
 
+  json j;
+  ifstream config_file("config.json");
+  string line, config;
+  while (getline (config_file, line)) {
+    config += line;
+  }
+
+  config_file.close();
+
+  try { 
+    j = json::parse(config);
+  } catch (json::parse_error& ex) {
+    std::cerr << "parse error at byte " << ex.byte << std::endl;
+  }
+
   
   //Erster Request
   string type1 = "";
-  app.add_option("-type1", type1, "Typ von Request 1");
-  string url1 = "";
-  app.add_option("-url1", url1, "URL von Request 1");
-  string port1 = "";
-  app.add_option("-port1", port1, "Port von Request 1");
-  string path1 = "";
-  app.add_option("-path1", path1, "Path von Request 1");
-  string file1 = "";
-  app.add_option("-file1", file1, "Dateiname von Request 1");
+  string url1  = "";
+  string port1 = "80";
+  string path1 = "/";
+  string file1 = "test.txt";
   string user1 = "";
-  app.add_option("-user1", user1, "User von Request 1");
-  string pw1 = "";
-  app.add_option("-pw1", pw1, "Password von Request 1");
+  string pw1   = "";
+
+  user1 = j["user1"];
+  pw1 = j["pw1"];
+
+  app.add_option("--type1", type1, "Typ von Request 1");
+  app.add_option("--url1",  url1,  "URL von Request 1");
+  app.add_option("--port1", port1, "Port von Request 1");
+  app.add_option("--path1", path1, "Path von Request 1");
+  app.add_option("--file1", file1, "Dateiname von Request 1");
+  app.add_option("--user1", user1, "User von Request 1");
+  app.add_option("--pw1",   pw1,   "Password von Request 1");
 
   //Zweiter Request
   string type2 = "";
-  app.add_option("-type1", type2, "Typ von Request 2");
-  string url2 = "";
-  app.add_option("-url1", url2, "URL von Request 2");
-  string port2 = "";
-  app.add_option("-port1", port2, "Port von Request 2");
-  string path2 = "";
-  app.add_option("-path1", path2, "Path von Request 2");
-  string file2 = "";
-  app.add_option("-file1", file2, "Dateiname von Request 2");
+  string url2  = "";
+  string port2 = "80";
+  string path2 = "/";
+  string file2 = "test.txt";
   string user2 = "";
-  app.add_option("-user1", user2, "User von Request 2");
-  string pw2 = "";
-  app.add_option("-pw1", pw2, "Password von Request 2");
+  string pw2   = "";
+
+  user2 = j["user2"];
+  pw2 = j["pw2"];
+
+  app.add_option("--type2", type2, "Typ von Request 2");
+  app.add_option("--url2",  url2,  "URL von Request 2");
+  app.add_option("--port2", port2, "Port von Request 2");
+  app.add_option("--path2", path2, "Path von Request 2");
+  app.add_option("--file2", file2, "Dateiname von Request 2");
+  app.add_option("--user2", user2, "User von Request 2");
+  app.add_option("--pw2",   pw2,   "Password von Request 2");
 
   //Dritter Request
   string type3 = "";
-  app.add_option("-type1", type3, "Typ von Request 3");
   string url3 = "";
-  app.add_option("-url1", url3, "URL von Request 3");
-  string port3 = "";
-  app.add_option("-port1", port3, "Port von Request 3");
-  string path3 = "";
-  app.add_option("-path1", path3, "Path von Request 3");
-  string file3 = "";
-  app.add_option("-file1", file3, "Dateiname von Request 3");
+  string port3 = "80";
+  string path3 = "/";
+  string file3 = "test.txt";
   string user3 = "";
-  app.add_option("-user1", user3, "User von Request 3");
-  string pw3 = "";
-  app.add_option("-pw1", pw3, "Password von Request 3");
+  string pw3   = "";
 
+  user3 = j["user3"];
+  pw3 = j["pw3"];
+
+  app.add_option("--type3", type3, "Typ von Request 3");
+  app.add_option("--url3",  url3,  "URL von Request 3");
+  app.add_option("--port3", port3, "Port von Request 3");
+  app.add_option("--path3", path3, "Path von Request 3");
+  app.add_option("--file3", file3, "Dateiname von Request 3");
+  app.add_option("--user3", user3, "User von Request 3");
+  app.add_option("--pw3",   pw3,   "Password von Request 3");
 
 
   CLI11_PARSE(app, argc, argv);
@@ -262,7 +290,7 @@ int main(int argc, char** argv) {
     spdlog::error("1. Request: Typ nicht erkannt");
   }
 
-  if (req2.size() > 0) {
+  if (type2 != "") {
     if (req2[0] == "GET" || req2[0] == "DELETE") {
       send_GET_DELETE(req2, "2");
     } else if (req2[0] == "POST" || req2[0] == "PUT") {
