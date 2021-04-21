@@ -12,24 +12,12 @@ nicht auf Header vergessen und inkl. Cookies, http‐parser kann verwendet werde
 ## Verwendung
 Das Programm ermöglicht es 3 HTTP Request (GET, POST, PUT oder DELETE) an 3 verschiedene Server zu senden. Die jeweiligen informationen müssen in einer vorgesehen Reihenfolge angegeben werden. Basic Authentication ist möglich. 
 
-Ein GET Aufruf: 
+Ein Beispielaufruf für 2 Requests:
 ```
-./klinger_project_2 -1 GET abc.xyz /abc [cookies] test.txt [username passwort]
-```
-
-Ein POST Aufruf:
-```
-./klinger_project_2 -1 POST abc.xyz /abc [cookies] content-type content [username passwort]
-```
-
-Ein schneller Test kann mit dieser Test Website durchgeführt werden
-```
-./klinger_project_2 -1 GET ptsv2.com 80 /t/jonny/post test.txt  
-```
-
-Hier ein Test mit Cookie:
-```
-./klinger_project_2 -1 GET ptsv2.com 80 /t/jonny/post moin=meister test.txt   
+./klinger_project_2 --type1 GET --url1 ptsv2.com --path1 /t/jonny/post --port1 80 
+--cookies1 cookie=value --file1 test1.txt --user1 user --pw1 password --type2 POST 
+--url2 ptsv2.com --path2 /t/jonny/post --port2 80 --contentType2 text/plain 
+--content2 Content ... 
 ```
 
 Jeder aufruf startet mit der Zahl des requests. Also -1 für den Ersten -2 für den Zweiten usw. 
