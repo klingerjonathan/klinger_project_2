@@ -53,35 +53,29 @@ void send_GET_DELETE(vector<string> input, string n) {
       //HTTP Request to send
       string req_string = get_basic_header(input[0], input[3], input[1]);
 
-      if (input.size() == 8) {
+      if (input[4] != "") {
         spdlog::info(n + ". Request: Cookies erkannt");
+
+        req_string = req_string + "Cookie: " + input[4] + "\r\n";
+
+      
+      } 
+      if (input[8] != "" && input[9] != "") {
         spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
 
-        file_place = 7;
+     
 
-        string auth = input[5] + ":" + input[6];
-        string base_auth = base64(auth);
-
-        req_string = req_string + 
-        "Authorization: Basic " + base_auth + "\r\n"
-        "Cookie: " + input[4] + "\r\n\r\n";        
-      } else if (input.size() == 7) {
-        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
-
-        file_place = 6;
-
-        string auth = input[4] + ":" + input[5];
+        string auth = input[8] + ":" + input[9];
         string base_auth = base64(auth);
 
         req_string = req_string + "Authorization: Basic " + base_auth + "\r\n\r\n";
-      } else if (input.size() == 6) {
-        spdlog::info(n + ". Request: Cookie erkannt");
-        file_place = 5;
 
-        req_string = req_string + "Cookie: " + input[4] + "\r\n\r\n";
-      } else {
-        req_string = req_string + "\r\n";
+      } else if ((input[8] == "" && input[9] != "") || (input[8] != "" && input[9] == "")) {
+        spdlog::error(n + ". Request: Username/Passwort nicht erkannt");
       }
+        
+      req_string = req_string + "\r\n";
+      
 
       //String to Char[]
       char req[150];
@@ -107,14 +101,14 @@ void send_GET_DELETE(vector<string> input, string n) {
 
       spdlog::info(n + ". Request: Status: " + status);
       //Writing in file. . .
-      if (input.size() == file_place + 1) {
+      if (input[7] != "") {
         ofstream file;
         file.open(input[file_place]);
         file << body;
         file.close();
         spdlog::info(n + ". Request: Datei erfolgreich erstellt");
       } else {
-        spdlog::error(n + ". Request: Konnte nicht in datei schreiben...");
+        spdlog::error(n + ". Request: Gültigen Dateinamen angeben!");
       }
       
     } catch (asio::system_error& e) {
@@ -133,31 +127,27 @@ void send_POST_PUT(vector<string> input, string n) {
       //HTTP Request to send
       string req_string = get_basic_header(input[0], input[3], input[1]);
 
-      if (input.size() == 8) {
+      if (input[4] != "") {
         spdlog::info(n + ". Request: Cookies erkannt");
-        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
-
-        string auth = input[5] + ":" + input[6];
-        string base_auth = base64(auth);
-
-        req_string = req_string + 
-        "Authorization: Basic " + base_auth + "\r\n"
-        "Cookie: " + input[4] + "\r\n";   
-      } else if (input.size() == 7) {
-        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
-        string auth = input[4] + ":" + input[5];
-        string base_auth = base64(auth);
-        req_string = req_string + "Authorization: Basic " + base_auth + "\r\n";
-      } else if (input.size() == 6) {
-        spdlog::info(n + ". Request: Cookie erkannt");
 
         req_string = req_string + "Cookie: " + input[4] + "\r\n";
+      
       } 
+      if (input[8] != "" && input[9] != "") {
+        spdlog::info(n + ". Request: HTTP Basic Authorization erkannt");
 
+        string auth = input[8] + ":" + input[9];
+        string base_auth = base64(auth);
+
+        req_string = req_string + "Authorization: Basic " + base_auth + "\r\n\r\n";
+
+      } else if ((input[8] == "" && input[9] != "") || (input[8] != "" && input[9] == "")) {
+        spdlog::error(n + ". Request: Username/Passwort nicht erkannt");
+      }
       req_string = req_string +
-          "Content-Type: " + input[4] + "\r\n"
+          "Content-Type: " + input[5] + "\r\n"
           "Content-Length: " + to_string(input[5].length()) + "\r\n\r\n" +
-          input[5];
+          input[6];
 
       //String to Char[]
       char req[150];
@@ -218,6 +208,9 @@ int main(int argc, char** argv) {
   string file1 = "test.txt";
   string user1 = "";
   string pw1   = "";
+  string cookies1 = "";
+  string content_type1 = "";
+  string content1 = "";
 
   user1 = j["user1"];
   pw1 = j["pw1"];
@@ -229,6 +222,9 @@ int main(int argc, char** argv) {
   app.add_option("--file1", file1, "Dateiname von Request 1");
   app.add_option("--user1", user1, "User von Request 1");
   app.add_option("--pw1",   pw1,   "Password von Request 1");
+  app.add_option("--cookies1", cookies1, "Cookies von Request 1");
+  app.add_option("--contentType1", content_type1, "Content Type von Request 1");
+  app.add_option("--content1", content1, "Content von Request 1");
 
   //Zweiter Request
   string type2 = "";
@@ -238,6 +234,9 @@ int main(int argc, char** argv) {
   string file2 = "test.txt";
   string user2 = "";
   string pw2   = "";
+  string cookies2 = "";
+  string content_type2 = "";
+  string content2 = "";
 
   user2 = j["user2"];
   pw2 = j["pw2"];
@@ -249,6 +248,10 @@ int main(int argc, char** argv) {
   app.add_option("--file2", file2, "Dateiname von Request 2");
   app.add_option("--user2", user2, "User von Request 2");
   app.add_option("--pw2",   pw2,   "Password von Request 2");
+  app.add_option("--cookies2", cookies2, "Cookies von Request 2");
+  app.add_option("--contentType2", content_type2, "Content Type von Request 2");
+  app.add_option("--content2", content2, "Content von Request 2");
+
 
   //Dritter Request
   string type3 = "";
@@ -258,6 +261,9 @@ int main(int argc, char** argv) {
   string file3 = "test.txt";
   string user3 = "";
   string pw3   = "";
+  string cookies3 = "";
+  string content_type3 = "";
+  string content3 = "";
 
   user3 = j["user3"];
   pw3 = j["pw3"];
@@ -269,6 +275,9 @@ int main(int argc, char** argv) {
   app.add_option("--file3", file3, "Dateiname von Request 3");
   app.add_option("--user3", user3, "User von Request 3");
   app.add_option("--pw3",   pw3,   "Password von Request 3");
+  app.add_option("--cookies3", cookies3, "Cookies von Request 3");
+  app.add_option("--contentType3", content_type3, "Content Type von Request 3");
+  app.add_option("--content3", content3, "Content von Request 3");
 
 
   CLI11_PARSE(app, argc, argv);
@@ -277,9 +286,9 @@ int main(int argc, char** argv) {
   // -[1/2/3] [GET/POST/PUT/DELETE] [URL] [PORT] [VERZEICHNIS] [DATEI] 
   //                reqx[0]        reqx[1] reqx[2]  reqx[3]    reqx[4]
 
-  vector<string> req1{type1, url1, port1, path1, file1, user1, pw1};
-  vector<string> req2{type2, url2, port2, path2, file2, user2, pw2};
-  vector<string> req3{type3, url3, port3, path3, file3, user3, pw3};
+  vector<string> req1{type1, url1, port1, path1, cookies1, content_type1, content1, file1, user1, pw1};
+  vector<string> req2{type2, url2, port2, path2, cookies2, content_type2, content2, file2, user2, pw2};
+  vector<string> req3{type3, url3, port3, path3, cookies3, content_type3, content3, file3, user3, pw3};
 
   
   if (type1 == "GET" || type1 == "DELETE") {
@@ -300,7 +309,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (req3.size() > 0) {
+  if (type3 != "") {
     if (req3[0] == "GET" || req3[0] == "DELETE") {
       send_GET_DELETE(req1, "3");
     } else if (req3[0] == "POST" || req3[0] == "PUT") {
