@@ -20,8 +20,7 @@ using namespace std;
 using namespace asio::ip;
 using namespace nlohmann;
 
-asio::io_context ctx;
-tcp::resolver resolve(ctx);  
+
 
 string base64(string str) {
   string command = "printf " + str + " | base64 > base64.txt";
@@ -43,13 +42,15 @@ string get_basic_header(string type, string path, string url) {
 }
 
 void send_GET_DELETE(vector<string> input, string n) {
+  asio::io_context ctx;
+  tcp::resolver resolve(ctx);  
+
   try {
       spdlog::info(n + ". Request: gestartet...");
       auto results = resolve.resolve(input[1], input[2]);
       tcp::socket sock{ctx};
       asio::connect(sock, results);
 
-      unsigned int file_place = 4;
       //HTTP Request to send
       string req_string = get_basic_header(input[0], input[3], input[1]);
 
@@ -89,6 +90,9 @@ void send_GET_DELETE(vector<string> input, string n) {
       error_code ec;
 
       size_t reply_length = asio::read(sock, asio::buffer(reply), ec);
+      if (ec.value() != 2) {
+        spdlog::error(n + ". Request: fehlgeschlagen!");
+      }
 
       //Char[] to String
       string res = "";
@@ -102,11 +106,15 @@ void send_GET_DELETE(vector<string> input, string n) {
       spdlog::info(n + ". Request: Status: " + status);
       //Writing in file. . .
       if (input[7] != "") {
-        ofstream file;
-        file.open(input[file_place]);
-        file << body;
-        file.close();
-        spdlog::info(n + ". Request: Datei erfolgreich erstellt");
+        try {
+          ofstream file;
+          file.open(input[7]);
+          file << body;
+          file.close();
+          spdlog::info(n + ". Request: Datei erfolgreich erstellt");
+        } catch (...) {
+          spdlog::error(n + ". Request: Datei erstellen fehlgeschlagen!");
+        }
       } else {
         spdlog::error(n + ". Request: Gültigen Dateinamen angeben!");
       }
@@ -118,6 +126,9 @@ void send_GET_DELETE(vector<string> input, string n) {
 }
 
 void send_POST_PUT(vector<string> input, string n) {
+  asio::io_context ctx;
+  tcp::resolver resolve(ctx);  
+
   try {
       spdlog::info(n + ". Request: gestartet...");
       auto results = resolve.resolve(input[1], input[2]);
@@ -139,18 +150,21 @@ void send_POST_PUT(vector<string> input, string n) {
         string auth = input[8] + ":" + input[9];
         string base_auth = base64(auth);
 
-        req_string = req_string + "Authorization: Basic " + base_auth + "\r\n\r\n";
+        req_string = req_string + "Authorization: Basic " + base_auth;
 
       } else if ((input[8] == "" && input[9] != "") || (input[8] != "" && input[9] == "")) {
         spdlog::error(n + ". Request: Username/Passwort nicht erkannt");
       }
+
       req_string = req_string +
-          "Content-Type: " + input[5] + "\r\n"
-          "Content-Length: " + to_string(input[5].length()) + "\r\n\r\n" +
+          "Content-Type: " + input[5] + "\r\n" +
+          "Content-Length: " + to_string(input[6].length()) + "\r\n\r\n" +
           input[6];
 
+      cout << req_string << endl;
+
       //String to Char[]
-      char req[150];
+      char req[200];
       for (unsigned int i=0; i<req_string.length(); i++) {
         req[i] = req_string[i];
       }
@@ -161,6 +175,9 @@ void send_POST_PUT(vector<string> input, string n) {
       error_code ec;
 
       size_t reply_length = asio::read(sock, asio::buffer(reply), ec);
+      if (ec.value() != 2) {
+        spdlog::error(n + ". Request: fehlgeschlagen!");
+      }
 
       //Char[] to String
       string res = "";
